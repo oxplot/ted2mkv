@@ -290,7 +290,7 @@ def _ts_parts(ts):
 
 def _enc_xml_entity(s):
   return re.sub(r'[&<>]', lambda x: {
-    '&': '&amp;', '>': '&gt', '<': '&lt'
+    '&': '&amp;', '>': '&gt;', '<': '&lt;'
   }, s)
 
 def main():
