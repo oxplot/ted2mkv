@@ -288,16 +288,11 @@ def _ts_parts(ts):
   s = ts % 60
   return (h, m, s, ms)
 
-def _enc_xml_entity(s):
-  return re.sub(r'[&<>]', lambda x: {
-    '&': '&amp;', '>': '&gt;', '<': '&lt;'
-  }, s)
-
 def main():
 
   parser = argparse.ArgumentParser(
     formatter_class=argparse.RawDescriptionHelpFormatter,
-    description='TED scrapper'
+    description='TED scraper'
   )
   parser.add_argument(
     'url',
