@@ -19,18 +19,29 @@
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
-from cStringIO import StringIO
 from subprocess import Popen, PIPE
-from urllib2 import urlopen, Request, HTTPError
 import argparse
 import json
 import os
 import re
 import sys
 
+# Version dependant imports
+
+try:
+  from cStringIO import StringIO
+except ImportError:
+  from io import BytesIO as StringIO
+
+try:
+  from urllib2 import urlopen, Request, HTTPError
+except ImportError:
+  from urllib.request import urlopen, Request
+  from urllib.error import HTTPError
+
 _USERAGENT = 'Mozilla/5.0 (X11; U; Linux x86_64; en-US; rv:1.9.0.5)' \
             ' Gecko/2008121622 Ubuntu/8.04 (hardy) Firefox/3.0.5'
-_devnull = open(os.devnull, 'w')
+_devnull = open(os.devnull, 'wb')
 monmap = {'jan': 1, 'feb': 2, 'mar': 3, 'apr': 4, 'may': 5, 'jun': 6,
   'jul': 7, 'aug': 8, 'sep': 9, 'oct': 10, 'nov': 11, 'dec': 12}
 
@@ -156,7 +167,7 @@ class TED2MKV:
 
     tmppath = self._cover_path + ".tmp"
     headers = {"User-Agent": _USERAGENT}
-    open(tmppath, 'w').write(
+    open(tmppath, 'wb').write(
       urlopen(Request(self._cover_url, headers=headers)).read())
     os.rename(tmppath, self._cover_path)
 
@@ -167,7 +178,7 @@ class TED2MKV:
       "User-Agent": _USERAGENT}
     try:
       rfile = urlopen(Request(self._vid_url, headers=headers))
-    except HTTPError, e:
+    except HTTPError as e:
       if e.code == 416:
         return
       else:
@@ -198,7 +209,7 @@ class TED2MKV:
         % (self._id, ln)
       headers = {"User-Agent": _USERAGENT}
       jsonsubt = urlopen(Request(url, headers=headers)).read()
-      srtsubt = self._tosrt(json.loads(jsonsubt))
+      srtsubt = self._tosrt(json.loads(jsonsubt.decode('utf8')))
       open(tmppath, 'wb').write(srtsubt)
 
       os.rename(tmppath, path)
@@ -228,7 +239,7 @@ class TED2MKV:
       title_xml + filmed_xml + posted_xml + url_xml + static_xml
       + summary_xml + keywords_xml
     )
-    open(self._tags_path, 'w').write(final_xml.encode('utf8'))
+    open(self._tags_path, 'wb').write(final_xml.encode('utf8'))
 
   def _make_mkv(self):
 
