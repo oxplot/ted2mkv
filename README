@@ -7,4 +7,7 @@ Features:
 - Downloads and embeds the video summary text and other metadata in the
   mkv file.
 
+Requirements:
+- mkvtoolnix (it uses mkvmerge to create the mkv file)
+
 For usage information, run ted2mkv with -h option.
