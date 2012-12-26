@@ -49,7 +49,7 @@ monmap = {'jan': 1, 'feb': 2, 'mar': 3, 'apr': 4, 'may': 5, 'jun': 6,
 class TED2MKVError(Exception):
   pass
 
-class TED2MKV:
+class TED2MKV(object):
 
   def __init__(self, url, outdir = '.'):
 
@@ -60,26 +60,28 @@ class TED2MKV:
     self.overwrite_mkv = False
 
   def convert(self):
-
     try:
-      self._load_talk()
-
-      if not self.overwrite_mkv and os.path.exists(self._mkv_path):
-        raise TED2MKVError('mkv exists, skipping')
-
-      if self.clear_before:
-        self._clear()
-
-      self._write_tags()
-      self._download_media()
-      self._download_subtitles()
-      self._download_video()
-      self._make_mkv()
-
-      if not self.keep_after:
-        self._clear()
+      self._convert()
     except KeyboardInterrupt:
       raise TED2MKVError('interrupted, use without -c to resume')
+
+  def _convert(self):
+    self._load_talk()
+
+    if not self.overwrite_mkv and os.path.exists(self._mkv_path):
+      raise TED2MKVError('mkv exists, skipping')
+
+    if self.clear_before:
+      self._clear()
+
+    self._write_tags()
+    self._download_media()
+    self._download_subtitles()
+    self._download_video()
+    self._make_mkv()
+
+    if not self.keep_after:
+      self._clear()
 
   def _clear(self):
     for f in os.listdir(self.outdir):
@@ -246,7 +248,7 @@ class TED2MKV:
   def _make_mkv(self):
 
     tmpmkvpath = os.path.join(
-      self.outdir, '.%s.mkv.tmp')
+      self.outdir, '.%s.mkv.tmp' % self._name)
 
     args = [
       'mkvmerge', '--default-language', 'eng', '-q',
