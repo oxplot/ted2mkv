@@ -18,8 +18,13 @@
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
-from urllib2 import urlopen, Request, HTTPError
 import re
+
+try:
+  from urllib2 import urlopen, Request, HTTPError
+except ImportError:
+  from urllib.request import urlopen, Request
+  from urllib.error import HTTPError
 
 _USERAGENT = 'Mozilla/5.0 (X11; U; Linux x86_64; en-US; rv:1.9.0.5)' \
             ' Gecko/2008121622 Ubuntu/8.04 (hardy) Firefox/3.0.5'
@@ -30,7 +35,8 @@ headers = {'User-Agent': _USERAGENT}
 talks = re.findall(
   r'<tr>.+?<a\s+href="(/talks/[^"]+\.html)">.+?'
   r'<a\s+href="http://download[^"]+">High',
-  urlopen(Request(url, headers=headers)).read(), re.DOTALL)
+  urlopen(Request(url, headers=headers)).read().decode('utf8'),
+  re.DOTALL)
 
 for t in talks:
   print('http://www.ted.com%s' % t)

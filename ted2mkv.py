@@ -26,7 +26,7 @@ import os
 import re
 import sys
 
-# Version dependant imports
+# Version dependent imports
 
 try:
   from cStringIO import StringIO
@@ -39,11 +39,15 @@ except ImportError:
   from urllib.request import urlopen, Request
   from urllib.error import HTTPError
 
+_progname = 'ted2mkv'
 _USERAGENT = 'Mozilla/5.0 (X11; U; Linux x86_64; en-US; rv:1.9.0.5)' \
             ' Gecko/2008121622 Ubuntu/8.04 (hardy) Firefox/3.0.5'
 _devnull = open(os.devnull, 'wb')
 monmap = {'jan': 1, 'feb': 2, 'mar': 3, 'apr': 4, 'may': 5, 'jun': 6,
   'jul': 7, 'aug': 8, 'sep': 9, 'oct': 10, 'nov': 11, 'dec': 12}
+
+class TED2MKVError(Exception):
+  pass
 
 class TED2MKV:
 
@@ -61,8 +65,7 @@ class TED2MKV:
       self._load_talk()
 
       if not self.overwrite_mkv and os.path.exists(self._mkv_path):
-        print('ted2mkv: mkv exists, skipping', file=sys.stderr)
-        return
+        raise TED2MKVError('mkv exists, skipping')
 
       if self.clear_before:
         self._clear()
@@ -76,8 +79,7 @@ class TED2MKV:
       if not self.keep_after:
         self._clear()
     except KeyboardInterrupt:
-      print('ted2mkv: interrupted, use without -c to resume',
-            file=sys.stderr)
+      raise TED2MKVError('interrupted, use without -c to resume')
 
   def _clear(self):
     for f in os.listdir(self.outdir):
@@ -185,7 +187,7 @@ class TED2MKV:
         raise e
     try:
       if rfile.code != 206:
-        raise SystemExit("couldn't download video")
+        raise TED2MKVError("couldn't download video")
       while True:
         din = rfile.read(32000)
         if not din:
@@ -223,7 +225,7 @@ class TED2MKV:
              '</Targets>%s</Tag></Tags>'
     static_xml = tpl % ('ARTIST', 'TED')
     static_xml += tpl % ('PUBLISHER', 'TED')
-    static_xml += tpl % ('ENCODED_BY', 'ted2mkv')
+    static_xml += tpl % ('ENCODED_BY', _progname)
     static_xml += tpl % ('COPYRIGHT', 'TED Conferences, LLC')
     static_xml += tpl % ('LICENSE', 'TED Creative Commons License')
     static_xml += tpl % ('GENRE', 'Podcast')
@@ -270,8 +272,7 @@ class TED2MKV:
     proc = Popen(args)
     proc.communicate()
     if proc.wait() != 0:
-      print('ted2mkv: mkvmerge failed', file=sys.stderr)
-      return
+      raise TED2MKVError('mkvmerge failed')
 
     os.rename(tmpmkvpath, self._mkv_path)
 
@@ -334,12 +335,15 @@ def main():
   )
   args = parser.parse_args()
 
-  converter = TED2MKV(args.url)
-  converter.outdir = args.outdir
-  converter.clear_before = args.clear_before
-  converter.keep_after = args.keep_after
-  converter.overwrite_mkv = args.overwrite_mkv
-  converter.convert()
+  try:
+    converter = TED2MKV(args.url)
+    converter.outdir = args.outdir
+    converter.clear_before = args.clear_before
+    converter.keep_after = args.keep_after
+    converter.overwrite_mkv = args.overwrite_mkv
+    converter.convert()
+  except TED2MKVError as e:
+    print('%s: %s' % (_progname, e.message), file=sys.stderr)
 
 if __name__ == '__main__':
   main()
