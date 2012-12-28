@@ -347,7 +347,7 @@ def main():
     converter.overwrite_mkv = args.overwrite_mkv
     converter.convert()
   except TED2MKVError as e:
-    print('%s: %s' % (_progname, e.message), file=sys.stderr)
+    print('%s: %s' % (_progname, e.args[0]), file=sys.stderr)
 
 if __name__ == '__main__':
   main()
