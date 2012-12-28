@@ -129,8 +129,10 @@ class TED2MKV(object):
 
     self._langs = re.findall(
       r'<option value="([^"]+)"[^>]*>([^<]+)</option>',
-      re.search(r'<select name="subtitles_language_select"[^>]*>'
-                r'(.+?)</select>', talk_page, re.DOTALL).group(1))
+      (re.search(r'<select name="subtitles_language_select"[^>]*>'
+                r'(.+?)</select>', talk_page, re.DOTALL)
+        or re.search('()', ''))
+      .group(1))
 
     # Get the subtitle time offset
 
