@@ -45,6 +45,7 @@ _USERAGENT = 'Mozilla/5.0 (X11; U; Linux x86_64; en-US; rv:1.9.0.5)' \
 _devnull = open(os.devnull, 'wb')
 monmap = {'jan': 1, 'feb': 2, 'mar': 3, 'apr': 4, 'may': 5, 'jun': 6,
   'jul': 7, 'aug': 8, 'sep': 9, 'oct': 10, 'nov': 11, 'dec': 12}
+iso639_3_map = {'arq': 'ar'}
 
 class TED2MKVError(Exception):
   pass
@@ -282,7 +283,7 @@ class TED2MKV(object):
         args.extend(['--default-track', '0'])
       args.extend(['--sub-charset', '0:utf-8',
         '--track-name', '0:%s' % lnname,
-        '--language', '0:%s' % ln.split('-')[0], path
+        '--language', '0:%s' % _2iso639(ln.split('-')[0]), path
         ])
 
     args.append(self._vid_path)
@@ -317,6 +318,9 @@ def _ts_parts(ts):
   m = (ts % 3600) // 60
   s = ts % 60
   return (h, m, s, ms)
+
+def _2iso639(ln):
+  return iso639_3_map.get(ln, ln)
 
 def main():
 
