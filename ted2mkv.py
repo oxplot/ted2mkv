@@ -275,7 +275,11 @@ class TED2MKV(object):
     args.append(self._vid_path)
     proc = Popen(args)
     proc.communicate()
-    if proc.wait() != 0:
+    ecode = proc.wait()
+    if ecode == 1:
+      print('%s: completed despite the warnings above' % _progname,
+            file=sys.stderr)
+    elif ecode == 2:
       raise TED2MKVError('mkvmerge failed')
 
     os.rename(tmpmkvpath, self._mkv_path)
@@ -348,6 +352,7 @@ def main():
     converter.convert()
   except TED2MKVError as e:
     print('%s: %s' % (_progname, e.args[0]), file=sys.stderr)
+    exit(2)
 
 if __name__ == '__main__':
   main()
