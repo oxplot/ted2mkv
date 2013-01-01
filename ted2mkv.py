@@ -203,22 +203,35 @@ class TED2MKV(object):
 
   def _download_subtitles(self):
 
-    for ln, _ in self._langs:
+    avail_subs = []
+    for ln, lnname in self._langs:
 
       path = os.path.join(
         self.outdir, '.%s.%s.srt' % (self._name, ln))
       if os.path.exists(path):
+        avail_subs.append((ln, lnname))
         continue
       tmppath = path + ".tmp"
 
       url = 'http://www.ted.com/talks/subtitles/id/%d/lang/%s' \
         % (self._id, ln)
       headers = {"User-Agent": _USERAGENT}
-      jsonsubt = urlopen(Request(url, headers=headers)).read()
-      srtsubt = self._tosrt(json.loads(jsonsubt.decode('utf8')))
-      open(tmppath, 'wb').write(srtsubt)
+      try:
+        jsonsubt = urlopen(Request(url, headers=headers)).read()
+      except HTTPError as e:
+        if e.code == 404:
+          print("%s: subtitle for %s (%s) is not found on server"
+                % (_progname, lnname, ln), file=sys.stderr)
+        else:
+          raise e
+      else:
+        srtsubt = self._tosrt(json.loads(jsonsubt.decode('utf8')))
+        open(tmppath, 'wb').write(srtsubt)
 
-      os.rename(tmppath, path)
+        os.rename(tmppath, path)
+        avail_subs.append((ln, lnname))
+
+    self._langs = avail_subs
 
   def _write_tags(self):
 
@@ -276,10 +289,7 @@ class TED2MKV(object):
     proc = Popen(args)
     proc.communicate()
     ecode = proc.wait()
-    if ecode == 1:
-      print('%s: completed despite the warnings above' % _progname,
-            file=sys.stderr)
-    elif ecode == 2:
+    if ecode == 2:
       raise TED2MKVError('mkvmerge failed')
 
     os.rename(tmpmkvpath, self._mkv_path)
@@ -351,7 +361,7 @@ def main():
     converter.overwrite_mkv = args.overwrite_mkv
     converter.convert()
   except TED2MKVError as e:
-    print('%s: %s' % (_progname, e.args[0]), file=sys.stderr)
+    print('%s: error: %s' % (_progname, e.args[0]), file=sys.stderr)
     exit(2)
 
 if __name__ == '__main__':
