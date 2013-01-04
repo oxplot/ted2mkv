@@ -117,7 +117,8 @@ class TED2MKV(object):
     m = re.search(
       r'<strong>Filmed</strong>\s*([A-Za-z]{3})\s+(\d{4})',
       talk_page)
-    self._filmed = (int(m.group(2)), monmap[m.group(1).lower()])
+    self._filmed = (int(m.group(2)), monmap[m.group(1).lower()]) if m \
+      else None
     m = re.search(
       r'<strong>Posted</strong>\s*([A-Za-z]{3})\s+(\d{4})',
       talk_page)
@@ -241,24 +242,22 @@ class TED2MKV(object):
              '<!DOCTYPE Tags SYSTEM "matroskatags.dtd">' \
              '<Tags><Tag><Targets><TargetType>EPISODE</TargetType>' \
              '</Targets>%s</Tag></Tags>'
-    static_xml = tpl % ('ARTIST', 'TED')
-    static_xml += tpl % ('PUBLISHER', 'TED')
-    static_xml += tpl % ('ENCODED_BY', _progname)
-    static_xml += tpl % ('COPYRIGHT', 'TED Conferences, LLC')
-    static_xml += tpl % ('LICENSE', 'TED Creative Commons License')
-    static_xml += tpl % ('GENRE', 'Podcast')
-    summary_xml = tpl % ('SUMMARY', self._summary)
-    summary_xml += tpl % ('DESCRIPTION', self._summary)
-    keywords_xml = tpl % ('KEYWORDS', self._keywords)
-    title_xml = tpl % ('TITLE', self._headline)
-    filmed_xml = tpl % ('DATE_RECORDED', '%04d-%02d' % self._filmed)
-    posted_xml = tpl % ('DATE_RELEASED', '%04d-%02d' % self._posted)
-    url_xml = tpl % (
-      'URL','http://www.ted.com/talks/%s.html' % self._name)
-    final_xml = tagtpl % (
-      title_xml + filmed_xml + posted_xml + url_xml + static_xml
-      + summary_xml + keywords_xml
-    )
+    xml = ''
+    xml += tpl % ('ARTIST', 'TED')
+    xml += tpl % ('PUBLISHER', 'TED')
+    xml += tpl % ('ENCODED_BY', _progname)
+    xml += tpl % ('COPYRIGHT', 'TED Conferences, LLC')
+    xml += tpl % ('LICENSE', 'TED Creative Commons License')
+    xml += tpl % ('GENRE', 'Podcast')
+    xml += tpl % ('SUMMARY', self._summary)
+    xml += tpl % ('DESCRIPTION', self._summary)
+    xml += tpl % ('KEYWORDS', self._keywords)
+    xml += tpl % ('TITLE', self._headline)
+    if self._filmed:
+      xml += tpl % ('DATE_RECORDED', '%04d-%02d' % self._filmed)
+    xml += tpl % ('DATE_RELEASED', '%04d-%02d' % self._posted)
+    xml += tpl % ('URL','http://www.ted.com/talks/%s.html' % self._name)
+    final_xml = tagtpl % xml
     open(self._tags_path, 'wb').write(final_xml.encode('utf8'))
 
   def _make_mkv(self):
