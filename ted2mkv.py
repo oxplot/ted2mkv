@@ -97,6 +97,15 @@ class TED2MKV(object):
     talk_page = urlopen(Request(self.url, headers=headers)).read()
     talk_page = talk_page.decode('utf8')
 
+    # Get talk details
+
+    m = re.search(
+      r'<script type="text/javascript">var talkDetails ='
+      r'(.+?)</script>',
+      talk_page, re.DOTALL)
+    talk_details = json.loads(m.group(1))
+    self._subt_off = int(talk_details['mediaPad'] * 1000)
+
     # Get the talk ID and name and headline
 
     m = re.search(
@@ -135,12 +144,6 @@ class TED2MKV(object):
                 r'(.+?)</select>', talk_page, re.DOTALL)
         or re.search('()', ''))
       .group(1))
-
-    # Get the subtitle time offset
-
-    self._subt_off = int(float(re.search(
-      r'var pad_seconds = ([0-9.]+)', talk_page).group(1)
-      ) * 1000)
 
     # Get the URL for video
 
