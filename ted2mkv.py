@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # ted2mkv.py - Download TED video with its subtitles and metadata and
 #              create an MKV out of it.
-# Copyright (C) 2012  Mansour <mansour@oxplot.com>
+# Copyright (C) 2012  Mansour Behabadi <mansour@oxplot.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
