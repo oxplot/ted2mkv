@@ -29,14 +29,25 @@ except ImportError:
 _USERAGENT = 'Mozilla/5.0 (X11; U; Linux x86_64; en-US; rv:1.9.0.5)' \
             ' Gecko/2008121622 Ubuntu/8.04 (hardy) Firefox/3.0.5'
 
-url = 'http://www.ted.com/talks/quick-list'
+url = 'http://www.ted.com/talks/quick-list?sort=date&order=desc&page=%d'
 headers = {'User-Agent': _USERAGENT}
 
-talks = re.findall(
-  r'<tr>.+?<a\s+href="(/talks/[^"]+\.html)">.+?'
-  r'<a\s+href="http://download[^"]+">High',
-  urlopen(Request(url, headers=headers)).read().decode('utf8'),
-  re.DOTALL)
+page = 1
+while True:
 
-for t in talks:
-  print('http://www.ted.com%s' % t)
+  content = urlopen(
+    Request(url % page, headers=headers)
+  ).read().decode('utf8')
+
+  talks = re.findall(
+    r'<tr>.+?<a\s+href="(/talks/[^"]+\.html)">.+?'
+    r'<a\s+href="http://download[^"]+">High', content, re.DOTALL)
+  
+  for t in talks:
+    print('http://www.ted.com%s' % t)
+
+  if not re.search(r'>Next &raquo;<', content):
+    break
+
+  page += 1
+
