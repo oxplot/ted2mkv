@@ -149,7 +149,7 @@ class TED2MKV(object):
 
     vid_filename = re.search(
       r'<a id="no-flash-video-download"'
-      r' href="http://download.ted.com/talks/([^"]+?)\.mp4"',
+      r' href="http://download.ted.com/talks/([^"]+?)\.mp4',
       talk_page).group(1)
     self._vid_url = 'http://download.ted.com/talks/' \
       + vid_filename + '-480p.mp4?apikey=TEDDOWNLOAD'
