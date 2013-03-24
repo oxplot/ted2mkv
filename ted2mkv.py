@@ -118,10 +118,10 @@ class TED2MKV(object):
     # Get the dates and headline
 
     self._summary = re.sub(r'<[^>]+>', ' ', re.search(
-      r'<p id="tagline"\s*>(.+?)</p>',
+      r'<p id="tagline"[^>]*>(.+?)</p>',
       talk_page, re.DOTALL).group(1).strip())
     self._headline = re.search(
-      r'<span\s+id="altHeadline"\s*>([^<]+)</span>',
+      r'<span\s+id="altHeadline"[^>]*>([^<]+)</span>',
       talk_page).group(1).strip()
     m = re.search(
       r'<strong>Filmed</strong>\s*([A-Za-z]{3})\s+(\d{4})',
