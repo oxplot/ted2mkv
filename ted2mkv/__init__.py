@@ -19,6 +19,15 @@
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
+
+__author__ = 'Mansour Behabadi'
+__copyright__ = 'Copyright (C) 2013 Mansour Behabadi'
+__credits__ = ['Mansour Behabadi']
+__email__ = 'mansour@oxplot.com'
+__license__ = 'GPLv3'
+__maintainer__ = 'Mansour Behabadi'
+__version__ = '1.1'
+
 from subprocess import Popen, PIPE
 import argparse
 import json

@@ -1,0 +1,6 @@
+#!/usr/bin/env python
+
+import ted2mkv
+
+if __name__ == '__main__':
+  ted2mkv.main()
