@@ -337,12 +337,12 @@ def main():
 
   parser = argparse.ArgumentParser(
     formatter_class=argparse.RawDescriptionHelpFormatter,
-    description='TED scraper'
+    description='TED talk downloader'
   )
   parser.add_argument(
     'url',
     metavar='<url>',
-    help='url to TED talk'
+    help='url to a specific TED talk'
   )
   parser.add_argument(
     '-o', '--outdir',
