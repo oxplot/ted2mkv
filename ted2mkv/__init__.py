@@ -34,6 +34,7 @@ import json
 import os
 import re
 import sys
+import time
 
 # Version dependent imports
 
@@ -109,65 +110,51 @@ class TED2MKV(object):
     # Get talk details
 
     m = re.search(
-      r'<script type="text/javascript">var talkDetails ='
-      r'(.+?)</script>',
+      r'<script>q[(]"talkPage\.init",([{].+?[}])[)]</script>',
       talk_page, re.DOTALL)
-    talk_details = json.loads(m.group(1))
-    self._subt_off = int(talk_details['mediaPad'] * 1000)
+    talk_details = json.loads(m.group(1))['talks'][0]
+    self._subt_off = int(talk_details['introDuration'] * 1000)
 
     # Get the talk ID and name and headline
 
-    m = re.search(
-      r'<div id="share_and_save"[^>]*?data-id="(\d+)"'
-      r'.*?data-slug="([^"]+)"',
-      talk_page, re.DOTALL)
-    self._id = int(m.group(1))
-    self._name = m.group(2)
+    self._id = talk_details['id']
+    self._name = talk_details['slug']
 
     # Get the dates and headline
 
-    self._summary = re.sub(r'<[^>]+>', ' ', re.search(
-      r'<p id="tagline"[^>]*>(.+?)</p>',
-      talk_page, re.DOTALL).group(1).strip())
+    self._speaker = re.search(
+      r'<meta content="([^"]+)" name="author"',
+      talk_page).group(1)
+    self._summary = re.search(
+      r'<meta content="([^"]+)" name="description"',
+      talk_page).group(1)
     self._headline = re.search(
-      r'<span\s+id="altHeadline"[^>]*>([^<]+)</span>',
-      talk_page).group(1).strip()
-    m = re.search(
-      r'<strong>Filmed</strong>\s*([A-Za-z]{3})\s+(\d{4})',
-      talk_page)
-    self._filmed = (int(m.group(2)), monmap[m.group(1).lower()]) if m \
-      else None
-    m = re.search(
-      r'<strong>Posted</strong>\s*([A-Za-z]{3})\s+(\d{4})',
-      talk_page)
-    self._posted = (int(m.group(2)), monmap[m.group(1).lower()])
+      r'<meta content="([^"]+)" property="og:title"',
+      talk_page).group(1)
+    self._filmed = time.strftime(
+      '%Y-%m-%d %H:%M:%S', time.gmtime(talk_details['filmed'])
+    )
+    self._posted = time.strftime(
+      '%Y-%m-%d %H:%M:%S', time.gmtime(talk_details['published'])
+    )
     self._keywords = re.search(
-      r'<meta name="keywords" content="([^"]+)"',
+      r'<meta content="([^"]+)" name="keywords"',
       talk_page).group(1)
 
     # Get the list of subtitles
 
-    self._langs = re.findall(
-      r'<option value="([^"]+)"[^>]*>([^<]+)</option>',
-      (re.search(r'<select name="subtitles_language_select"[^>]*>'
-                r'(.+?)</select>', talk_page, re.DOTALL)
-        or re.search('()', ''))
-      .group(1))
+    self._langs = [
+      (l['languageCode'], l['languageName'])
+      for l in talk_details['languages']
+    ]
 
     # Get the URL for video
 
-    vid_filename = re.search(
-      r'<a id="no-flash-video-download"'
-      r' href="http://download.ted.com/talks/([^"]+?)\.mp4',
-      talk_page).group(1)
-    self._vid_url = 'http://download.ted.com/talks/' \
-      + vid_filename + '-480p.mp4?apikey=TEDDOWNLOAD'
+    self._vid_url = talk_details['nativeDownloads']['high']
 
     # Get the URL for cover
 
-    self._cover_url = re.search(
-      r'<meta property="og:image" content="([^"]+)"',
-      talk_page).group(1)
+    self._cover_url = talk_details['thumb']
 
     # Some convenience stuff
 
@@ -255,7 +242,7 @@ class TED2MKV(object):
              '<Tags><Tag><Targets><TargetType>EPISODE</TargetType>' \
              '</Targets>%s</Tag></Tags>'
     xml = ''
-    xml += tpl % ('ARTIST', 'TED')
+    xml += tpl % ('ARTIST', self._speaker)
     xml += tpl % ('PUBLISHER', 'TED')
     xml += tpl % ('ENCODED_BY', _progname)
     xml += tpl % ('COPYRIGHT', 'TED Conferences, LLC')
@@ -266,8 +253,8 @@ class TED2MKV(object):
     xml += tpl % ('KEYWORDS', self._keywords)
     xml += tpl % ('TITLE', self._headline)
     if self._filmed:
-      xml += tpl % ('DATE_RECORDED', '%04d-%02d' % self._filmed)
-    xml += tpl % ('DATE_RELEASED', '%04d-%02d' % self._posted)
+      xml += tpl % ('DATE_RECORDED', self._filmed)
+    xml += tpl % ('DATE_RELEASED', self._posted)
     xml += tpl % ('URL','http://www.ted.com/talks/%s.html' % self._name)
     final_xml = tagtpl % xml
     open(self._tags_path, 'wb').write(final_xml.encode('utf8'))
