@@ -21,10 +21,9 @@ from __future__ import unicode_literals
 import re
 
 try:
-  from urllib2 import urlopen, Request, HTTPError
+  from urllib2 import urlopen, Request
 except ImportError:
   from urllib.request import urlopen, Request
-  from urllib.error import HTTPError
 
 _USERAGENT = 'Mozilla/5.0 (X11; U; Linux x86_64; en-US; rv:1.9.0.5)' \
             ' Gecko/2008121622 Ubuntu/8.04 (hardy) Firefox/3.0.5'
